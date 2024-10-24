@@ -1,0 +1,10 @@
+.primary {
+  @apply px-4 py-3 text-base font-bold text-white bg-purple-600 hover:bg-purple-700 active:bg-purple-800 disabled:cursor-not-allowed  disabled:bg-black-100;
+}
+.secondary {
+  @apply bg-white  px-4 py-3 text-base font-bold text-purple-600 border-[0.5px] border-purple-600  hover:shadow-light-btn-shadow  active:shadow-light-btn-shadow-inset disabled:cursor-not-allowed  disabled:bg-black-100;
+}
+.text {
+  @apply text-purple-600 mx-1 font-bold relative;
+}
+

@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+}
+
+body {
+    font-family: "Noto Sans", sans-serif;
+    box-sizing: border-box;
+}
+input,
+select,
+textarea {
+    @apply text-sm xs:text-base bg-white font-normal px-4 py-3 rounded-lg text-black focus:outline-none disabled:text-black-200;
+}
+label {
+    @apply text-black-200;
+}
+h1 {
+    @apply text-32 xs:text-5xl font-bold;
+}
+h2 {
+    @apply text-28 xs:text-40 font-bold;
+}
+h3 {
+    @apply text-2xl xs:text-32  font-bold;
+}
+h4 {
+    @apply text-xl xs:text-2xl font-bold;
+}
+h5 {
+    @apply text-lg xs:text-xl font-bold;
+}
+h6 {
+    @apply text-base font-bold;
+}
+.p {
+    @apply text-sm font-normal;
+}
+.sub-heading-1 {
+    @apply text-xl xs:text-2xl font-medium;
+}
+.content-1 {
+    @apply text-sm xs:text-base font-normal;
+}
+.content-2 {
+    @apply text-xs xs:text-sm font-normal;
+}
+.content-3 {
+    @apply text-xs font-normal;
+}
+.sub-heading-2 {
+    @apply text-lg xs:text-xl font-medium;
+}
+.sub-heading-3 {
+    @apply text-base font-medium;
+}
+.required {
+    @apply text-red-500;
+}
+.error {
+    @apply text-red-500 content-2;
+}
+.min-w-unset {
+    min-width: unset;
+}
+/* ****** React DatePicker Styling classes ****** */
+.react-datepicker__triangle {
+    @apply !hidden;
+}
+.react-datepicker {
+    box-shadow: 0px 4px 8px 0px #aa66ff33;
+    @apply !border-none !rounded-lg;
+}
+.react-datepicker__header {
+    @apply !bg-white !border-none;
+}
+.react-datepicker__day:hover {
+    @apply !bg-purple-200 !rounded-full;
+}
+.react-datepicker__day--selected {
+    @apply !bg-purple-600 text-white !rounded-full;
+}
+
+.react-datepicker__day:hover {
+    @apply bg-purple-400;
+}
+
+.react-datepicker {
+    @apply bg-purple-100;
+}
+.react-datepicker__day-names {
+    @apply !flex !justify-evenly;
+}
+.react-datepicker__week {
+    @apply !flex !justify-evenly;
+}
+/* ****** ****** ****** ****** ****** ****** */
+
+/**************** react-select styling classes*********** */
+.select__control--is-disabled {
+    @apply !bg-white !cursor-not-allowed;
+}
+/* ****************************************************** */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.mob_new_nav {
+    -webkit-animation: my_mob_first 500ms;
+    animation: my_mob_first 500ms;
+}
+
+.mob_new_nav_close {
+    -webkit-animation: myfirst_mob_close 750ms;
+    animation: myfirst_mob_close 750ms;
+}
+
+@keyframes my_mob_first {
+    0% {
+        @apply opacity-0;
+        right: -100vw;
+    }
+
+    100% {
+        @apply right-0 opacity-100;
+    }
+}
+
+@keyframes myfirst_mob_close {
+    0% {
+        @apply right-0 opacity-100;
+    }
+
+    100% {
+        @apply opacity-0;
+        right: -100vw;
+    }
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .custom-scrollbar {
+        &::-webkit-scrollbar {
+            @apply w-[4px] h-1;
+        }
+
+        &::-webkit-scrollbar-track {
+            @apply bg-transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            @apply bg-[#d3d3d3] rounded-lg;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            @apply bg-[#b1b0b0] transition-colors cursor-pointer;
+        }
+    }
+}
+.progress::-webkit-slider-thumb {
+    width: 5px;
+    height: 5px;
+    border-radius: 8px;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background: transparent;
+}

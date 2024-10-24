@@ -1,0 +1,6 @@
+.primary{
+ @apply bg-white;
+}
+.secondary{
+    @apply bg-purple-50
+}

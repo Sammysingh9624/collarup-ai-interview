@@ -1,0 +1,62 @@
+
+
+
+  .label {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    margin-bottom: 8px;
+    color: black;
+   
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 22px;
+  }
+  .multiInputContainer {
+    border-radius: 8px;
+    height: 143px;
+    overflow-y: auto;
+    
+  
+  }
+  .primary{
+    @apply bg-white;
+  }
+  .secondary{
+      @apply bg-purple-50
+  }
+  .valuesContainer {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+   
+  }
+  .valueBadge {
+    color: #06000D;
+  }
+  .noPadding {
+    padding: 0px;
+  }
+  .noBorder {
+    border: none;
+  }
+  .isInvalid {
+    outline: none !important;
+    border: 1px solid red !important;
+  }
+  .input {
+    padding: 0 !important;
+    border: none;
+    outline: none;
+    width: 100%;
+    /* height: 100%; */
+    font-size: 16px;
+  }
+  /* .input::placeholder {
+      color: black;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+    } */
+  
