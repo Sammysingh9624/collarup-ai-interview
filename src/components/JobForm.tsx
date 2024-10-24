@@ -120,7 +120,7 @@ const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
 
     return (
         <FormProvider {...methods}>
-            <form className="flex flex-col gap-4" onSubmit={methods.handleSubmit(onSubmit)}>
+            <form className="flex flex-col gap-4 w-[90%]" onSubmit={methods.handleSubmit(onSubmit)}>
                 <div className={`jobInfo grid grid-cols-4 gap-4`}>
                     <FieldInput label="Job Title" name="jobTitle" required disabled={readOnly} />
                     <FieldSelect
