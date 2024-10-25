@@ -17,6 +17,7 @@ const SpeechTranscription = ({
     setIsHumanSpeaking,
     isHumanSpeaking,
     setMessages,
+    isBotSpeaking,
 }: // endInterview,
 {
     transcript: string;
@@ -28,6 +29,7 @@ const SpeechTranscription = ({
     jobTitle: string;
     isHumanSpeaking: boolean;
     setMessages: Dispatch<SetStateAction<{ role: string; content: string }[]>>;
+    isBotSpeaking: boolean;
     // endInterview: () => void;
 }) => {
     const time = useMemo(() => getTimeFromDate(), []);
@@ -69,7 +71,7 @@ const SpeechTranscription = ({
 
             newRecognition.onend = () => {
                 console.log('Speech recognition ended. Restarting...');
-                newRecognition.start(); // Restart recognition when it ends
+                // Restart recognition when it ends
             };
 
             setRecognition(newRecognition);
@@ -96,11 +98,12 @@ const SpeechTranscription = ({
                     </div>
                     <InformationIcon />
                 </div>
-                {!!transcript && (
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <Button onClick={handleStartStop}>End Speaking</Button>
-                    </div>
-                )}
+
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <Button onClick={handleStartStop} disabled={isBotSpeaking}>
+                        End Speaking
+                    </Button>
+                </div>
             </div>
         </>
     );

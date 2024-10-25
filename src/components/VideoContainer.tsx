@@ -19,11 +19,11 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     const [recognition, setRecognition] = useState<any>(null);
     const { assistant: assistantId, threadId, jobTitle } = videoData;
     const [isBotSpeaking, setIsBotSpeaking] = useState<boolean>(false);
-    const [isVideo, setIsVideo] = useState(false);
+
     const startWebcam = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            setIsVideo(true);
+
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
                 videoRef.current.play();
@@ -95,28 +95,28 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                         }`}
                     >
                         <video className={`z-1 w-full `} ref={videoRef} autoPlay muted />
-                        {isVideo && (
-                            <>
+
+                        <>
+                            <div
+                                className={`absolute bottom-8 right-8 border-[3px] rounded-2xl backdrop-blur-[3px]  ${
+                                    isBotSpeaking ? ' border-[#AA66FF] ' : 'border-white'
+                                }`}
+                            >
                                 <div
-                                    className={`absolute bottom-8 right-8 border-[3px] rounded-2xl ${
-                                        isBotSpeaking ? ' border-[#AA66FF] ' : 'border-white'
-                                    }`}
-                                >
-                                    <div
-                                        className={`relative w-[200px] h-[134px] flex justify-center items-center flex-col bg-transparent blur-3xl`}
-                                    ></div>
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                                        <div className=" w-[64px] h-[64px] bg-white rounded-full flex justify-center items-center">
-                                            <CollarupLogo size={38} />
-                                        </div>
-                                        <div className="flex mt-2 gap-2">
-                                            <span className="text-white font-medium">Morgan</span>
-                                            {isBotSpeaking && <Loader />}
-                                        </div>
+                                    className={`relative w-[200px] h-[134px] flex justify-center items-center flex-col`}
+                                ></div>
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+                                    <div className=" w-[64px] h-[64px] bg-white rounded-full flex justify-center items-center">
+                                        <CollarupLogo size={38} />
+                                    </div>
+                                    <div className="flex mt-2 gap-2">
+                                        <span className="text-white font-medium">Morgan</span>
+                                        {isBotSpeaking && <Loader />}
                                     </div>
                                 </div>
-                            </>
-                        )}
+                            </div>
+                        </>
+
                         <div className="absolute bottom-8 left-8 flex gap-2">
                             <span className="text-white font-semibold">You</span>
                             {isHumanSpeaking && <Loader />}
@@ -177,6 +177,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                         setIsHumanSpeaking={setIsHumanSpeaking}
                         isHumanSpeaking={isHumanSpeaking}
                         setMessages={setMessages}
+                        isBotSpeaking={isBotSpeaking}
                     />
                 ) : (
                     <p>Microphone permission is required to use this feature.</p>
