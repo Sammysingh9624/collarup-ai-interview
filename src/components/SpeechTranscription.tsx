@@ -71,7 +71,7 @@ const SpeechTranscription = ({
 
             newRecognition.onend = () => {
                 console.log('Speech recognition ended. Restarting...');
-                // Restart recognition when it ends
+                newRecognition.start(); // Restart recognition when it ends
             };
 
             setRecognition(newRecognition);
