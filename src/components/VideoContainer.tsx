@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import CollarupLogo from '../assets/svg/collarup-logo';
 import Loader from '../components/speak-loader/Loader';
 import { useSocket } from '../sokcet/SocketContext';
+import { getUserMessagesAfterLastAssistant } from '../utils/helper';
 import SpeechTranscription from './SpeechTranscription';
 
 const audioContext = new window.AudioContext();
@@ -66,9 +67,8 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     const sendMessage = () => {
         console.log('transcript12122', transcript);
         if (!transcript || !assistantId || !threadId) return;
-        setMessages((prevMessages) => [...prevMessages, { role: 'user', content: transcript }]);
         console.log('transcript', transcript);
-        socket.emit('chat', { text: transcript, assistantId, threadId });
+        socket.emit('chat', { text: getUserMessagesAfterLastAssistant(messages), assistantId, threadId });
         setTranscript('');
     };
 
@@ -176,6 +176,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                         jobTitle={jobTitle}
                         setIsHumanSpeaking={setIsHumanSpeaking}
                         isHumanSpeaking={isHumanSpeaking}
+                        setMessages={setMessages}
                     />
                 ) : (
                     <p>Microphone permission is required to use this feature.</p>

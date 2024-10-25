@@ -7,6 +7,7 @@ import { Button } from './button';
 import FieldInput from './fieldInput/FieldInput';
 import { FieldSelect } from './fieldSelect';
 import { FieldTextArea } from './fieldTextArea';
+import { Loader } from './loader';
 import MultiFieldTextArea from './multiFieldTextArea/MultiFieldTextArea';
 
 // import { useSearchParams } from "react-router-dom";
@@ -23,6 +24,7 @@ export interface JobFormProps {
 
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
 const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
+    const [loader, setLoader] = React.useState(false);
     const methods = useForm({
         mode: 'onChange',
     });
@@ -50,17 +52,23 @@ const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
             jobTitle,
             seniority,
         });
-        const data = await fetch(url, {
-            method: 'POST', // HTTP method
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: payload,
-        });
-        const response = await data.json();
-        setValue('responsibilities', response?.responsibilities || '');
-        console.log('response?.skills', response?.skills);
-        setValue('requiredSkills', response?.skills || []);
+        try {
+            setLoader(true);
+            const data = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: payload,
+            });
+            const response = await data.json();
+            setValue('responsibilities', response?.responsibilities || '');
+            setValue('requiredSkills', response?.skills || []);
+        } catch (err) {
+            console.log('err', err);
+        } finally {
+            setLoader(false);
+        }
     };
     useEffect(() => {
         if (jobTitle && seniority) {
@@ -119,54 +127,61 @@ const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
     };
 
     return (
-        <FormProvider {...methods}>
-            <form className="flex flex-col gap-4 w-[90%]" onSubmit={methods.handleSubmit(onSubmit)}>
-                <div className={`jobInfo grid grid-cols-4 gap-4`}>
-                    <FieldInput label="Job Title" name="jobTitle" required disabled={readOnly} />
-                    <FieldSelect
-                        label={'Seniority'}
-                        name="seniority"
-                        options={ONBOARD.addJobRole.seniority.options}
-                        isDisabled={readOnly}
-                        isSearchable={false}
-                        components={customSelectionComponent}
-                        classNames={{
-                            className: '!h-full',
-                        }}
-                        required
-                    />
+        <>
+            {loader && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <Loader />
                 </div>
-                <div className={`responsibility `}>
-                    <FieldTextArea
-                        label="Key Responsibility"
-                        name="responsibilities"
-                        rows={10}
-                        required
-                        disabled={readOnly}
-                    />
-                </div>
-                <div className={`skillAndQualification grid  gap-4`}>
-                    <MultiFieldTextArea
-                        name="requiredSkills"
-                        label="Required Skills"
-                        required
-                        disabled={readOnly}
-                        isEditing={!readOnly}
-                    />
-                </div>
-                {!readOnly && (
-                    <div className="cta self-end mt-4">
-                        <Button
-                            //   disabled={isSubmitting}
-                            //   className={`${false ? "!cursor-none !bg-[#D0AAFF]" : ""}`}
-                            type="submit"
-                        >
-                            Next
-                        </Button>
+            )}
+            <FormProvider {...methods}>
+                <form className="flex flex-col gap-4 w-[90%]" onSubmit={methods.handleSubmit(onSubmit)}>
+                    <div className={`jobInfo grid grid-cols-4 gap-4`}>
+                        <FieldInput label="Job Title" name="jobTitle" required disabled={readOnly} />
+                        <FieldSelect
+                            label={'Seniority'}
+                            name="seniority"
+                            options={ONBOARD.addJobRole.seniority.options}
+                            isDisabled={readOnly}
+                            isSearchable={false}
+                            components={customSelectionComponent}
+                            classNames={{
+                                className: '!h-full',
+                            }}
+                            required
+                        />
                     </div>
-                )}
-            </form>
-        </FormProvider>
+                    <div className={`responsibility `}>
+                        <FieldTextArea
+                            label="Key Responsibility"
+                            name="responsibilities"
+                            rows={10}
+                            required
+                            disabled={readOnly}
+                        />
+                    </div>
+                    <div className={`skillAndQualification grid  gap-4`}>
+                        <MultiFieldTextArea
+                            name="requiredSkills"
+                            label="Required Skills"
+                            required
+                            disabled={readOnly}
+                            isEditing={!readOnly}
+                        />
+                    </div>
+                    {!readOnly && (
+                        <div className="cta self-end mt-4">
+                            <Button
+                                //   disabled={isSubmitting}
+                                //   className={`${false ? "!cursor-none !bg-[#D0AAFF]" : ""}`}
+                                type="submit"
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
+                </form>
+            </FormProvider>
+        </>
     );
 };
 
