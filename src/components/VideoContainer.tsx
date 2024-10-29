@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import CollarupLogo from '../assets/svg/collarup-logo';
 import Loader from '../components/speak-loader/Loader';
 import { useSocket } from '../sokcet/SocketContext';
-import { getUserMessagesAfterLastAssistant } from '../utils/helper';
+import { calculateRMS, getUserMessagesAfterLastAssistant, mergeBuffers } from '../utils/helper';
 import SpeechTranscription from './SpeechTranscription';
+const VOLUME_THRESHOLD = 400;
 
 const audioContext = new window.AudioContext();
 const WebcamRecorder = ({ videoData }: { videoData: any }) => {
@@ -13,13 +14,77 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     const overflowRef = useRef<HTMLDivElement | null>(null);
     const [isMicAllowed, setIsMicAllowed] = useState<boolean>(false);
     const [isHumanSpeaking, setIsHumanSpeaking] = useState<boolean>(false);
-    const [transcript, setTranscript] = useState<string>('');
-    const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+
+    const [messages, setMessages] = useState<{ role: string; content: string; isFinal?: boolean }[]>([]);
     const socket = useSocket();
-    const [recognition, setRecognition] = useState<any>(null);
     const { assistant: assistantId, threadId, jobTitle } = videoData;
     const [isBotSpeaking, setIsBotSpeaking] = useState<boolean>(false);
+    const [report, setReport] = useState<any>('');
 
+    useEffect(() => {
+        const startRecording = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                });
+
+                const audioContext = new AudioContext({
+                    sampleRate: 16_000,
+                    latencyHint: 'balanced',
+                });
+
+                const source = audioContext.createMediaStreamSource(stream);
+                await audioContext.audioWorklet.addModule('audio-processor.js');
+                const audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-processor');
+                source.connect(audioWorkletNode);
+                audioWorkletNode.connect(audioContext.destination);
+
+                // Initialize an empty Int16Array to hold audio data
+                let audioBufferQueue = new Int16Array();
+
+                audioWorkletNode.port.onmessage = (event) => {
+                    const currentBuffer = new Int16Array(event.data.audio_data);
+                    audioBufferQueue = mergeBuffers(audioBufferQueue, currentBuffer);
+                    console.log('audioBufferQueue', audioBufferQueue);
+                    // Check if the buffer contains audio data
+                    if (audioBufferQueue.length === 0) {
+                        console.log('No audio data available in the buffer.');
+                        return; // Skip further processing if no audio data is available
+                    }
+
+                    const rms = calculateRMS(audioBufferQueue);
+                    console.log('RMS value:', rms);
+                    console.log('rms > VOLUME_THRESHOLD', rms > VOLUME_THRESHOLD);
+                    // Determine speaking status
+                    if (rms > VOLUME_THRESHOLD) {
+                        if (!isHumanSpeaking) {
+                            console.log('User started speaking');
+                            setIsHumanSpeaking(true);
+                        }
+                    } else {
+                        setIsHumanSpeaking(false);
+                    }
+
+                    const bufferDuration = (audioBufferQueue.length / audioContext.sampleRate) * 1000;
+
+                    // Wait until we have 100ms of audio data
+                    if (bufferDuration >= 100) {
+                        const totalSamples = Math.floor(audioContext.sampleRate * 0.1);
+                        const finalBuffer = new Uint8Array(audioBufferQueue.subarray(0, totalSamples).buffer);
+
+                        audioBufferQueue = audioBufferQueue.subarray(totalSamples);
+                        socket.emit('voice', finalBuffer);
+                    }
+                };
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+            }
+        };
+
+        // Call the startRecording function to start capturing audio
+        startRecording();
+    }, []);
+    console.log('report', report);
     const startWebcam = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -32,7 +97,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
             console.error('Error accessing the webcam', error);
         }
     };
-    console.log('isMicAllowed', isMicAllowed);
+
     useEffect(() => {
         // Request microphone permission when component loads
         navigator.mediaDevices
@@ -65,11 +130,9 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
         }
     }, [messages]);
     const sendMessage = () => {
-        console.log('transcript12122', transcript);
-        if (!transcript || !assistantId || !threadId) return;
-        console.log('transcript', transcript);
-        socket.emit('chat', { text: getUserMessagesAfterLastAssistant(messages), assistantId, threadId });
-        setTranscript('');
+        const textArray = getUserMessagesAfterLastAssistant(messages);
+        if (!textArray.length || !assistantId || !threadId) return;
+        socket.emit('chat', { text: textArray, assistantId, threadId });
     };
 
     useEffect(() => {
@@ -83,7 +146,35 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
         socket.on('report', (report) => {
             console.log('   ', report);
         });
+        socket.on('voice', (text) => {
+            setMessages((prevMessages) => {
+                if (
+                    prevMessages.length > 0 &&
+                    !prevMessages[prevMessages.length - 1].isFinal &&
+                    prevMessages[prevMessages.length - 1].role === 'user'
+                ) {
+                    prevMessages.pop();
+                }
+                return [...prevMessages, { role: 'user', content: text }];
+            });
+        });
+        socket.on('final', (text) => {
+            setMessages((prevMessages) => {
+                if (prevMessages.length > 0 && prevMessages[prevMessages.length - 1].role === 'user') {
+                    prevMessages.pop();
+                }
+                return [...prevMessages, { role: 'user', content: text, isFinal: true }];
+            });
+        });
+        socket.on('report', (report) => {
+            console.log('report', report);
+            setReport(report);
+        });
     }, []);
+
+    // const endInterview = () => {
+    //     socket.emit('report', { assistantId });
+    // };
 
     return (
         <div className="w-full h-screen bg-[#F5F5F5]">
@@ -168,16 +259,10 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
             <div className="w-full bg-transparent pl-4 pr-6">
                 {isMicAllowed ? (
                     <SpeechTranscription
-                        transcript={transcript}
-                        setTranscript={setTranscript}
-                        recognition={recognition}
-                        setRecognition={setRecognition}
                         handleTextToSpeech={sendMessage}
                         jobTitle={jobTitle}
-                        setIsHumanSpeaking={setIsHumanSpeaking}
-                        isHumanSpeaking={isHumanSpeaking}
-                        setMessages={setMessages}
                         isBotSpeaking={isBotSpeaking}
+                        // endInterview={endInterview}
                     />
                 ) : (
                     <p>Microphone permission is required to use this feature.</p>

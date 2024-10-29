@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ONBOARD } from '../constant/onboard/onboard';
+import { useSocket } from '../sokcet/SocketContext';
 import { Button } from './button';
 import FieldInput from './fieldInput/FieldInput';
 import { FieldSelect } from './fieldSelect';
@@ -24,6 +25,7 @@ export interface JobFormProps {
 
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
 const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
+    const socket = useSocket();
     const [loader, setLoader] = React.useState(false);
     const methods = useForm({
         mode: 'onChange',
@@ -94,6 +96,7 @@ const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
     }, [selectedLocation, setValue]);
 
     const onSubmit = async (data: any) => {
+        socket.emit('start', data);
         const payload = {
             jobTitle: data.jobTitle,
             responsibilities: data.responsibilities,
