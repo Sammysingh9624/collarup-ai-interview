@@ -1,86 +1,24 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { Dispatch, SetStateAction, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import InformationIcon from '../assets/svg/information-icon';
 import PeopleIcon from '../assets/svg/people';
 import { getTimeFromDate } from '../utils/helper';
 import { Button } from './button';
-const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 const SpeechTranscription = ({
-    transcript,
-    setTranscript,
-    recognition,
-    setRecognition,
     handleTextToSpeech,
     jobTitle,
-    setIsHumanSpeaking,
-    isHumanSpeaking,
-    setMessages,
     isBotSpeaking,
-}: // endInterview,
-{
-    transcript: string;
-    setIsHumanSpeaking: Dispatch<SetStateAction<boolean>>;
-    setTranscript: Dispatch<SetStateAction<string>>;
-    recognition: any;
-    setRecognition: Dispatch<SetStateAction<any>>;
-    handleTextToSpeech: (text: string) => void;
+    // endInterview,
+}: {
+    handleTextToSpeech: () => void;
     jobTitle: string;
-    isHumanSpeaking: boolean;
-    setMessages: Dispatch<SetStateAction<{ role: string; content: string }[]>>;
     isBotSpeaking: boolean;
     // endInterview: () => void;
 }) => {
     const time = useMemo(() => getTimeFromDate(), []);
 
-    useEffect(() => {
-        if (!recognition) {
-            const newRecognition = new SpeechRecognition();
-            newRecognition.continuous = true; // Keep recognizing speech continuously
-            newRecognition.interimResults = true; // Get real-time transcription
-            newRecognition.lang = 'en-US'; // Set language
-
-            newRecognition.onresult = (event: any) => {
-                if (!isHumanSpeaking) {
-                    setIsHumanSpeaking(true);
-                }
-                let finalTranscript = '';
-                // Loop through results
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const speechResult = event.results[i][0].transcript;
-
-                    if (event.results[i].isFinal) {
-                        finalTranscript += speechResult + ' '; // Only add finalized results to the transcript
-                        setMessages((prevMessages) => [...prevMessages, { role: 'user', content: finalTranscript }]);
-                    }
-                }
-                // Only update the transcript with finalized results
-                if (finalTranscript) {
-                    setTranscript((prevTranscript) => prevTranscript + finalTranscript);
-                    setIsHumanSpeaking(false);
-                }
-            };
-
-            newRecognition.onerror = (event: any) => {
-                console.error('Speech recognition error detected:', event.error);
-                // Restart recognition on error
-                newRecognition.stop();
-                newRecognition.start();
-            };
-
-            newRecognition.onend = () => {
-                console.log('Speech recognition ended. Restarting...');
-                newRecognition.start(); // Restart recognition when it ends
-            };
-
-            setRecognition(newRecognition);
-            newRecognition.start(); // Start recognition when created
-        }
-    }, [recognition, setTranscript]);
-
     const handleStartStop = () => {
-        handleTextToSpeech(transcript);
+        handleTextToSpeech();
     };
 
     return (
@@ -100,9 +38,12 @@ const SpeechTranscription = ({
                 </div>
 
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <Button onClick={handleStartStop} disabled={isBotSpeaking}>
-                        End Speaking
-                    </Button>
+                    <div className="flex gap-4">
+                        <Button onClick={handleStartStop} disabled={isBotSpeaking}>
+                            End Speaking
+                        </Button>
+                        {/* <Button onClick={endInterview}>End Interview</Button> */}
+                    </div>
                 </div>
             </div>
         </>
