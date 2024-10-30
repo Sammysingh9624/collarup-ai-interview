@@ -8,12 +8,12 @@ const SpeechTranscription = ({
     handleTextToSpeech,
     jobTitle,
     isBotSpeaking,
-    // endInterview,
+    endInterview,
 }: {
     handleTextToSpeech: () => void;
     jobTitle: string;
     isBotSpeaking: boolean;
-    // endInterview: () => void;
+    endInterview: () => void;
 }) => {
     const time = useMemo(() => getTimeFromDate(), []);
 
@@ -42,7 +42,8 @@ const SpeechTranscription = ({
                         <Button onClick={handleStartStop} disabled={isBotSpeaking}>
                             End Speaking
                         </Button>
-                        {/* <Button onClick={endInterview}>End Interview</Button> */}
+                        <Button onClick={endInterview}>End Interview</Button>
+                        {/* <Button onClick={onStop}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Button> */}
                     </div>
                 </div>
             </div>
