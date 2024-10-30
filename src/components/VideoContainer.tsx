@@ -19,7 +19,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     const navigate = useNavigate();
     const [isMicAllowed, setIsMicAllowed] = useState<boolean>(false);
     const [isHumanSpeaking, setIsHumanSpeaking] = useState<boolean>(false);
-
+    const [disableButton, setDisableButton] = useState<boolean>(false);
     const [messages, setMessages] = useState<{ role: string; content: string; isFinal?: boolean }[]>([]);
     const socket = useSocket();
     const { assistant: assistantId, threadId, jobTitle } = videoData;
@@ -99,14 +99,6 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
         // Call the startRecording function to start capturing audio
         startRecording();
     }, []);
-    // const toggleRecording = () => {
-    //     setIsRecording(!isRecording);
-    //     if (!isRecording) {
-    //         startRecording();
-    //     } else {
-    //         mediaRef?.current?.stop();
-    //     }
-    // };
 
     const startWebcam = async () => {
         try {
@@ -134,8 +126,8 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     }, []);
 
     async function playStream(audio: Float32Array) {
-        const audioData = new Uint8Array(audio);
         setIsBotSpeaking(true);
+        const audioData = new Uint8Array(audio);
         audioContext.decodeAudioData(audioData.buffer, (buffer) => {
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
@@ -143,6 +135,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
             source.start(0);
             source.onended = () => {
                 setIsBotSpeaking(false);
+                setDisableButton(false);
                 console.log('Playback finished');
             };
         });
@@ -154,6 +147,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     }, [messages]);
     const sendMessage = () => {
         const textArray = getUserMessagesAfterLastAssistant(messages);
+        setDisableButton(true);
         if (!textArray.length || !assistantId || !threadId) return;
         socket.emit('chat', { text: textArray, assistantId, threadId });
     };
@@ -283,8 +277,8 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                     <SpeechTranscription
                         handleTextToSpeech={sendMessage}
                         jobTitle={jobTitle}
-                        isBotSpeaking={isBotSpeaking}
                         endInterview={endInterview}
+                        disableButton={disableButton}
                     />
                 ) : (
                     <p>Microphone permission is required to use this feature.</p>

@@ -7,13 +7,13 @@ import { Button } from './button';
 const SpeechTranscription = ({
     handleTextToSpeech,
     jobTitle,
-    isBotSpeaking,
     endInterview,
+    disableButton,
 }: {
     handleTextToSpeech: () => void;
     jobTitle: string;
-    isBotSpeaking: boolean;
     endInterview: () => void;
+    disableButton: boolean;
 }) => {
     const time = useMemo(() => getTimeFromDate(), []);
 
@@ -39,7 +39,7 @@ const SpeechTranscription = ({
 
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <div className="flex gap-4">
-                        <Button onClick={handleStartStop} disabled={isBotSpeaking}>
+                        <Button onClick={handleStartStop} disabled={disableButton}>
                             End Speaking
                         </Button>
                         <Button onClick={endInterview}>End Interview</Button>
