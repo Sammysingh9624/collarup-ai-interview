@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
+import CameraOff from '../assets/svg/Cameraoff';
+import CameraOn from '../assets/svg/cameraOn';
 import InformationIcon from '../assets/svg/information-icon';
+import MicOff from '../assets/svg/micOff';
+import MicOn from '../assets/svg/micOn';
 import PeopleIcon from '../assets/svg/people';
 import { getTimeFromDate } from '../utils/helper';
 import { Button } from './button';
@@ -9,11 +13,21 @@ const SpeechTranscription = ({
     jobTitle,
     endInterview,
     disableButton,
+    stopMic,
+    isRecording,
+    isCameraOn,
+    toggleCamera,
+    isBotSpeaking,
 }: {
     handleTextToSpeech: () => void;
     jobTitle: string;
     endInterview: () => void;
     disableButton: boolean;
+    stopMic: () => void;
+    isRecording: boolean;
+    isCameraOn: boolean;
+    toggleCamera: () => void;
+    isBotSpeaking: boolean;
 }) => {
     const time = useMemo(() => getTimeFromDate(), []);
 
@@ -38,12 +52,22 @@ const SpeechTranscription = ({
                 </div>
 
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 items-center">
+                        <div onClick={toggleCamera}>{isCameraOn ? <CameraOn /> : <CameraOff />}</div>
+                        <div
+                            className="cursor-pointer"
+                            onClick={() => {
+                                if (!isBotSpeaking) {
+                                    stopMic();
+                                }
+                            }}
+                        >
+                            {isRecording && !isBotSpeaking ? <MicOn /> : <MicOff />}
+                        </div>
                         <Button onClick={handleStartStop} disabled={disableButton}>
                             End Speaking
                         </Button>
                         <Button onClick={endInterview}>End Interview</Button>
-                        {/* <Button onClick={onStop}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Button> */}
                     </div>
                 </div>
             </div>

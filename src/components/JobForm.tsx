@@ -122,8 +122,12 @@ const JobForm: React.FC<JobFormProps> = ({ handleData }) => {
 
             // Parse the response as JSON
             const result = await response.json();
-
             handleData(result);
+            // socket.on('start', (o: any) => {
+            //     console.log('o1111111111', o);
+            //     if (o === 'start') {
+            //     }
+            // });
         } catch (error) {
             console.error('Failed to create job:', error);
         }
