@@ -6,6 +6,7 @@ import CollarupLogo from '../assets/svg/collarup-logo';
 import Loader from '../components/speak-loader/Loader';
 import { useSocket } from '../sokcet/SocketContext';
 import { calculateRMS, getUserMessagesAfterLastAssistant, mergeBuffers } from '../utils/helper';
+import AiLoader from './CommanLoader/loader/Loader';
 import SpeechTranscription from './SpeechTranscription';
 let mediaRecorder: MediaRecorder;
 let audioWorkletNode: any;
@@ -20,15 +21,17 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const overflowRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
-    const [isMicAllowed, setIsMicAllowed] = useState<boolean>(false);
+    // const [isMicAllowed, setIsMicAllowed] = useState<boolean>(false);
     const [isHumanSpeaking, setIsHumanSpeaking] = useState<boolean>(false);
     const [disableButton, setDisableButton] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(true);
     const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
     const [messages, setMessages] = useState<{ role: string; content: string; isFinal?: boolean }[]>([]);
+    const [errorMessage, setErrorMessage] = useState<string>('');
     const socket = useSocket();
     const { assistant: assistantId, threadId, jobTitle } = videoData;
     const [isBotSpeaking, setIsBotSpeaking] = useState<boolean>(false);
+    const [aiLoader, setAiLoader] = useState<boolean>(false);
 
     // const [isRecording, setIsRecording] = useState<boolean>(true);
 
@@ -37,7 +40,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
         try {
             if (audioStream) {
                 audioStream.getAudioTracks().forEach((track) => {
-                    track.enabled = true; // This unmutes the microphone
+                    track.enabled = true; //
                 });
                 return;
             }
@@ -156,11 +159,14 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
 
     const handleMediaError = (error: any, value: string) => {
         if (error.name === 'NotAllowedError') {
+            setErrorMessage((prev) => prev + ` Please allow access to ${value}.`);
             console.error('Permission denied. Please allow access to the camera and microphone.');
         } else if (error.name === 'NotFoundError') {
-            console.error(`${value} not found. Please connect them and try again.`);
+            console.error(`${value} not found`);
+            setErrorMessage((prev) => prev + ` ${value} not found`);
         } else if (error.name === 'NotReadableError') {
             console.error('The camera or microphone is already in use by another application.');
+            setErrorMessage((prev) => prev + ` ${value} is already in use by another application.`);
         } else if (error.name === 'OverconstrainedError') {
             console.error('The requested camera or microphone constraints could not be met.');
         } else {
@@ -168,20 +174,9 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
         }
     };
 
-    useEffect(() => {
-        // Request microphone permission when component loads
-        navigator.mediaDevices
-            .getUserMedia({ audio: true })
-            .then(() => {
-                setIsMicAllowed(true);
-            })
-            .catch(() => {
-                setIsMicAllowed(false);
-            });
-    }, []);
-
     async function playStream(audio: Float32Array) {
         setIsBotSpeaking(true);
+        
         const audioData = new Uint8Array(audio);
         audioContext.decodeAudioData(audioData.buffer, (buffer) => {
             const source = audioContext.createBufferSource();
@@ -201,11 +196,12 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
         if (overflowRef.current) {
             overflowRef.current.scrollTop = overflowRef.current.scrollHeight; // Scroll to bottom
         }
-    }, [messages]);
+    }, [messages,aiLoader]);
     const sendMessage = () => {
         const textArray = getUserMessagesAfterLastAssistant(messages);
         setDisableButton(true);
         stopMic();
+        setAiLoader(true);
         if (!textArray.length || !assistantId || !threadId) return;
         socket.emit('chat', { text: textArray, assistantId, threadId });
     };
@@ -229,6 +225,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
             setMessages((prevMessages) => [...prevMessages, { role: 'assistant', content: message }]);
             console.log('speech', speech, message);
             playStream(speech);
+            setAiLoader(false);
         });
         socket.on('report', (report) => {
             console.log('   ', report);
@@ -336,6 +333,11 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                                             </div>
                                         );
                                     })}
+                                    {aiLoader && (
+                                        <div className="w-full flex flex-col gap-1 items-start px-2 py-2">
+                                            <AiLoader />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -343,7 +345,7 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                 </div>
             </div>
             <div className="w-full bg-transparent pl-4 pr-6">
-                {isMicAllowed ? (
+                {!errorMessage && (
                     <SpeechTranscription
                         handleTextToSpeech={sendMessage}
                         jobTitle={jobTitle}
@@ -355,10 +357,9 @@ const WebcamRecorder = ({ videoData }: { videoData: any }) => {
                         toggleCamera={toggleCamera}
                         isBotSpeaking={disableButton}
                     />
-                ) : (
-                    <p>Microphone permission is required to use this feature.</p>
                 )}
             </div>
+            {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
         </div>
     );
 };
